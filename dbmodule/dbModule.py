@@ -14,6 +14,7 @@ class Database():
         sql = "select * from MOVIES"
         data = self.pd.read_sql(sql, conn)
         return data
+
     def get_ratings(self):
         sql = "select * from RATINGS"
         data = self.pd.read_sql(sql, conn)
@@ -23,18 +24,23 @@ class Database():
         sql = "select USERID from MEMBERS where M_ID = '{}'".format(M_ID)
         data = self.pd.read_sql(sql, conn)
         return data
+
     def get_members_ratings(self, userId):
-        sql = "select MOVIEID, RATING from RATINGS where USERID = {}".format(userId)
+        sql = "select MOVIEID, RATING from RATINGS where USERID = {}".format(
+            userId)
         data = self.pd.read_sql(sql, conn)
         return data
+
     def get_members_one_hotted_movies(self, members_movieIds):
         # members_movieIds--> []
         conditions = []
         for id in members_movieIds:
             conditions.append("MOVIEID=" + str(id))
-        sql = "select * from ONEHOT_MOVIES where {}".format(' OR '.join(conditions))
+        sql = "select * from ONEHOT_MOVIES where {}".format(
+            ' OR '.join(conditions))
         data = self.pd.read_sql(sql, conn)
         return data
+
     def get_members_genre(self, M_ID):
         sql = "select M_GENRE from MEMBERS where M_ID = '{}'".format(M_ID)
         data = self.pd.read_sql(sql, conn)
@@ -42,7 +48,8 @@ class Database():
 
     def preprocessed_movies(self, data, table_name):
         rows = [tuple(x) for x in data.values]
-        sql = "INSERT INTO {} VALUES({})".format(table_name, ', '.join([':'+str(i+1) for i in range(len(data.columns))]))
+        sql = "INSERT INTO {} VALUES({})".format(table_name, ', '.join(
+            [':'+str(i+1) for i in range(len(data.columns))]))
         conn.execute(sql, rows)
 
     def get_one_hotted_movies(self):
@@ -50,17 +57,23 @@ class Database():
         data = self.pd.read_sql(sql, conn)
         return data
 
+    def write_on_top_ten(self, table_name, userId, top_ten_list):
+        print(table_name, userId, top_ten_list)
+        print(type(table_name), type(userId), type(top_ten_list))
 
-
-
-
-
-
-
-
+        try:
+            sql = "insert into {} values({}, '{}')".format(
+                table_name, userId, top_ten_list)
+            conn.execute(sql)
+        except Exception as e:
+            sql = "update {} set movieids='{}' where userid={}".format(
+                table_name, top_ten_list, userId)
+            conn.execute(sql)
+# ================================================================================
 
     def read_data(self, table_name, files_name):
-        sql = "select * from {} where files_name = '{}'".format(table_name.lower(), files_name)
+        sql = "select * from {} where files_name = '{}'".format(
+            table_name.lower(), files_name)
         data = self.pd.read_sql(sql, conn)
         # data 열이름 소문자처리
         data.columns = data.columns.str.lower()
@@ -77,9 +90,8 @@ class Database():
         for col in cols:
             if type(data[col][0]) == str:
                 type_dict[col] = types.VARCHAR(50)
-        data.to_sql(new_table_name, conn, if_exists='append', index=False, dtype=type_dict)
-
-
+        data.to_sql(new_table_name, conn, if_exists='append',
+                    index=False, dtype=type_dict)
 
     def read_macro(self, macro_name):
         sql = "select * from macro where macro_name = '{}'".format(macro_name)
@@ -87,18 +99,23 @@ class Database():
         return macro_data
 
     def modeling_done(self, macro_name, score, report, kind):
-        data = pd.DataFrame({'macro_name':macro_name, 'score':score, 'report':report, 'kind':kind}, index=[0])
+        data = pd.DataFrame({'macro_name': macro_name, 'score': score,
+                             'report': report, 'kind': kind}, index=[0])
 
-        type_dict = {'macro_name': types.VARCHAR(20), 'score': types.FLOAT, 'report': types.CLOB, 'type': types.VARCHAR(20)}
-        data.to_sql('macro_done', conn, if_exists='append', index=False, dtype=type_dict)
+        type_dict = {'macro_name': types.VARCHAR(
+            20), 'score': types.FLOAT, 'report': types.CLOB, 'type': types.VARCHAR(20)}
+        data.to_sql('macro_done', conn, if_exists='append',
+                    index=False, dtype=type_dict)
 
     def set_storage(self, new_files_name, new_table_name):
-        names = pd.DataFrame(data={'tables_name':new_table_name, 'files_name':new_files_name}, index=[0])
+        names = pd.DataFrame(
+            data={'tables_name': new_table_name, 'files_name': new_files_name}, index=[0])
         names.to_sql('file_storage', conn, if_exists='append', index=False)
 
     def set_fk(self, new_table_name):
         new_table_name = new_table_name.lower()
-        sql="alter table {} add foreign key (files_name) references file_storage(files_name) on delete cascade".format(new_table_name)
+        sql = "alter table {} add foreign key (files_name) references file_storage(files_name) on delete cascade".format(
+            new_table_name)
         conn.execute(sql)
 
     def check_table(self, new_table_name):

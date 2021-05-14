@@ -1,26 +1,10 @@
+import re
 from dbmodule import dbModule
 import pandas as pd
 
 oracle_db = dbModule.Database()
 
 # one-hot-encode movies_df's genres column
-
-
-def one_hot_encode_genres(df: pd.DataFrame):
-    # Copying the movie dataframe into a new one since we won't need to use
-    # the genre information in our content-based recommendation system.
-    movies_with_genres_df = df.copy()
-
-    # For every row in the dataframe, iterate through the list of genres and place
-    # a 1 into the corresponding column
-    for index, row in df.iterrows():
-        for genre in row.genres:
-            movies_with_genres_df.at[index, genre] = 1
-
-    # Filling in the NaN values with 0 to show that a movie doesn't have that column's genre
-    movies_with_genres_df.fillna(0, inplace=True)
-
-    return movies_with_genres_df
 
 
 def get_member_recommendation(M_ID):
@@ -63,8 +47,14 @@ def get_member_recommendation(M_ID):
                   axis='columns', inplace=True)
     recommendation_df = (
         (genre_df*user_profile[0]).sum(axis="columns")) / user_profile[0].sum()
-    recommend_top10_movieid_list = recommendation_df.sort_values(
+    recommendation_df = recommendation_df.sort_values(
         ascending=False).head(10).index
+    recommend_top10_movieid_list = [id for id in recommendation_df]
+
+    # 추천 영화 10개 저장
+    oracle_db.write_on_top_ten(
+        'contents_top_ten', members_userId, recommend_top10_movieid_list)
+
     # 전체 영화중에 최고 10개만 보내기
     return recommend_top10_movieid_list
 
