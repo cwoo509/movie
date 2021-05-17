@@ -25,7 +25,6 @@ def main():
     M_ID = request.args.get('M_ID')
     cbrec = cb(M_ID)
     ubrec = ub(M_ID)
-    return jsonify(cbrec)
-
+    return jsonify(cbrec, ubrec)
 if __name__ == "__main__":
     app.run(port="8082")

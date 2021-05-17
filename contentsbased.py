@@ -8,7 +8,7 @@ oracle_db = dbModule.Database()
 
 
 def get_contentbased_recommendation(M_ID):
-    print("oracle_db.get_members_userId(M_ID):",oracle_db.get_members_userId(M_ID).values)
+    # print("oracle_db.get_members_userId(M_ID):",oracle_db.get_members_userId(M_ID).values)
     members_userId = oracle_db.get_members_userId(M_ID).values.tolist()[0][0]
     members_ratings_df = oracle_db.get_members_ratings(members_userId)
     members_movieIds = members_ratings_df["movieid"].to_list()
