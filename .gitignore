@@ -1,2 +1,4 @@
 ./dbmodule/conn.py
-./dbmodule/__pycache__
+./dbmodule/__pycache__/*
+./__pycache__/*
+./vscode/*
