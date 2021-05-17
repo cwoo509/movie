@@ -5,10 +5,11 @@ import pandas as pd
 
 oracle_db = dbModule.Database()
 
-df_ratings = oracle_db.get_ratings()
-df_movies = oracle_db.get_movies()
 
 def get_userbased_recommend(M_ID):
+    members_userId = oracle_db.get_members_userId(M_ID).values.tolist()[0][0]
+    df_ratings = oracle_db.get_ratings()
+    df_movies = oracle_db.get_movies()
 
     df_user_movie_ratings = df_ratings.pivot(
         index='userid',
@@ -34,10 +35,16 @@ def get_userbased_recommend(M_ID):
     svd_user_predicted_ratings = np.dot(np.dot(U, sigma), V) + user_ratings_mean.reshape(-1, 1)
     df_svd_preds = pd.DataFrame(svd_user_predicted_ratings, columns=df_user_movie_ratings.columns)
 
-    already_rated = recommend_movies(df_svd_preds, M_ID, df_movies, df_ratings, 100)
+    already_rated = recommend_movies(df_svd_preds, members_userId, df_movies, df_ratings, 10)
+    already_rated = already_rated[0]
+    already_rated_10 = already_rated.iloc[:10,1]
+    recommend_top10_movieid_list = [id for id in already_rated_10]
+    # 추천 영화 10개 저장
+    oracle_db.write_on_top_ten(
+        'user_top_ten', members_userId, recommend_top10_movieid_list)
 
-    return already_rated[0]
-
+    # 전체 영화중에 최고 10개만 보내기
+    return recommend_top10_movieid_list
 
 def recommend_movies(df_svd_preds, user_id, ori_movies_df, ori_ratings_df, num_recommendations=5):
     # 현재는 index로 적용되어 있으므로 user_ud -1d을 해야함
@@ -58,5 +65,3 @@ def recommend_movies(df_svd_preds, user_id, ori_movies_df, ori_ratings_df, num_r
     recommendations = recommendations.rename(columns={user_row_number: "Predictions"}).sort_values('Predictions',
                                                                                                    ascending=False)
     return user_history, recommendations
-
-print(get_userbased_recommend(220))
