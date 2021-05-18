@@ -15,16 +15,21 @@ cors = CORS(app)
 # scheduler.start()
 # scheduler.add_job(db_save, 'cron', hour=0)
 
+
 @app.route('/', methods=['GET'])
 def example():
     result = 0
     return result
 
+
 @app.route('/main', methods=['GET'])
 def main():
     M_ID = request.args.get('M_ID')
     cbrec = cb(M_ID)
-    ubrec = ub(M_ID)
-    return jsonify(cbrec, ubrec)
+    # ubrec = ub(M_ID)
+    # return jsonify(cbrec, ubrec)
+    return jsonify(cbrec)
+
+
 if __name__ == "__main__":
     app.run(port="8082")

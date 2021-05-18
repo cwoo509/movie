@@ -10,6 +10,7 @@ class Database():
     def __init__(self):
         self.pd = pd
 # ===========================================================================
+
     def get_members_userId(self, M_ID):
         sql = "select USERID from MEMBERS where M_ID = '{}'".format(M_ID)
         data = self.pd.read_sql(sql, conn)
@@ -33,12 +34,14 @@ class Database():
         return data
 
     def get_members_ratings(self, userId):
-        sql = "select MOVIEID, RATING from RATINGS where USERID = {}".format(userId)
+        sql = "select MOVIEID, RATING from RATINGS where USERID = {}".format(
+            userId)
         data = self.pd.read_sql(sql, conn)
         return data
 
     def get_members_ratings_userid_movieid(self, userId):
-        sql = "select USERID, MOVIEID from RATINGS where USERID = {}".format(userId)
+        sql = "select USERID, MOVIEID from RATINGS where USERID = {}".format(
+            userId)
         data = self.pd.read_sql(sql, conn)
         return data
 
@@ -52,7 +55,8 @@ class Database():
         conditions = []
         for id in members_movieIds:
             conditions.append("MOVIEID=" + str(id))
-        sql = "select * from ONEHOT_MOVIES where {}".format(' OR '.join(conditions))
+        sql = "select * from ONEHOT_MOVIES where {}".format(
+            ' OR '.join(conditions))
         data = self.pd.read_sql(sql, conn)
         return data
 
@@ -66,7 +70,7 @@ class Database():
         sql = "INSERT INTO {} VALUES({})".format(table_name, ', '.join(
             [':'+str(i+1) for i in range(len(data.columns))]))
         conn.execute(sql, rows)
-    
+
     def get_cleaned_movies_movieid_title(self):
         sql = "select MOVIEID, TITLE from ONEHOT_MOVIES"
         data = self.pd.read_sql(sql, conn)
@@ -75,17 +79,27 @@ class Database():
     def write_on_top_ten(self, table_name, userId, top_ten_list):
         # print(table_name, userId, top_ten_list)
         # print(type(table_name), type(userId), type(top_ten_list))
-        for rank, movieid in enumerate(top_ten_list):
-            try:
+
+        check_sql = "select * from {} where userId={}".format(
+            table_name, userId)
+        checked_data = self.pd.read_sql(check_sql, conn)
+        if checked_data.__len__() == 0:
+            for rank, movieid in enumerate(top_ten_list):
                 # values(userId, movieid, ranking)
-                sql = "insert into {} values({}, {}, {})".format(table_name, userId, movieid, rank+1)
+                sql = "insert into {} values({}, {}, {})".format(
+                    table_name, userId, movieid, rank+1)
+                print("try- sql:", sql)
                 conn.execute(sql)
-            except Exception as e:
-                sql = "update {} set movieid={}, set rank={} where userid={}".format(table_name, movieid, rank+1, userId)
+        else:
+            for rank, movieid in enumerate(top_ten_list):
+                sql = "update {} set movieid={}, ranking={} where userid={} and ranking={}".format(
+                    table_name, movieid, rank+1, userId, rank+1)
+                print("exception- sql:", sql)
                 conn.execute(sql)
 # ===============================stkim-userbased===============================
     # user-user :: collaborative filtering --> SVD
     # other member's rating list with the same movieid user watched before.
+
     def get_others_ratings_user_watched(self, userId, score):
         sql = """SELECT
                     A.USERID,
@@ -98,37 +112,14 @@ class Database():
               """.format(userId, score, userId, score)
         data = self.pd.read_sql(sql, conn)
         return data
+
     def get_members_ratings_over_score(self, userId, score):
-        sql = "select MOVIEID, RATING from RATINGS where USERID = {} and RATING >= {}".format(userId, score)
+        sql = "select MOVIEID, RATING from RATINGS where USERID = {} and RATING >= {}".format(
+            userId, score)
         data = self.pd.read_sql(sql, conn)
-        
+
         return data
 # =============================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def read_data(self, table_name, files_name):
         sql = "select * from {} where files_name = '{}'".format(
