@@ -73,15 +73,16 @@ class Database():
         return data
 
     def write_on_top_ten(self, table_name, userId, top_ten_list):
-        print(table_name, userId, top_ten_list)
-        print(type(table_name), type(userId), type(top_ten_list))
-
-        try:
-            sql = "insert into {} values({}, '{}')".format(table_name, userId, top_ten_list)
-            conn.execute(sql)
-        except Exception as e:
-            sql = "update {} set movieids='{}' where userid={}".format(table_name, top_ten_list, userId)
-            conn.execute(sql)
+        # print(table_name, userId, top_ten_list)
+        # print(type(table_name), type(userId), type(top_ten_list))
+        for rank, movieid in enumerate(top_ten_list):
+            try:
+                # values(userId, movieid, ranking)
+                sql = "insert into {} values({}, {}, {})".format(table_name, userId, movieid, rank+1)
+                conn.execute(sql)
+            except Exception as e:
+                sql = "update {} set movieid={}, set rank={} where userid={}".format(table_name, movieid, rank+1, userId)
+                conn.execute(sql)
 # ===============================stkim-userbased===============================
     # user-user :: collaborative filtering --> SVD
     # other member's rating list with the same movieid user watched before.
