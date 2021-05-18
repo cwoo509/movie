@@ -1,4 +1,5 @@
-./dbmodule/conn.py
-./dbmodule/__pycache__/*
-./__pycache__/*
-./vscode/*
+/dbmodule/conn.py
+/dbmodule/__pycache__/*
+/__pycache__/*
+/vscode
+/idea
