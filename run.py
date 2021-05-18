@@ -5,7 +5,7 @@ from dbmodule import dbModule
 
 from contentsbased import get_contentbased_recommendation as cb
 from userbased import get_userbased_recommend as ub
-
+# from fast_userbased import get_userbased_recommend as ub
 oracle_db = dbModule.Database()
 
 app = Flask(__name__)

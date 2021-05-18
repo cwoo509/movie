@@ -9,6 +9,11 @@ conn = conn.conn()
 class Database():
     def __init__(self):
         self.pd = pd
+# ===========================================================================
+    def get_members_userId(self, M_ID):
+        sql = "select USERID from MEMBERS where M_ID = '{}'".format(M_ID)
+        data = self.pd.read_sql(sql, conn)
+        return data
 
     def get_movies(self):
         sql = "select * from MOVIES"
@@ -20,14 +25,25 @@ class Database():
         data = self.pd.read_sql(sql, conn)
         return data
 
-    def get_members_userId(self, M_ID):
-        sql = "select USERID from MEMBERS where M_ID = '{}'".format(M_ID)
+    def get_others_ratings(self, userId):
+        sql = "select MOVIEID from RATINGS where userid != {}".format(userId)
+        print(sql)
         data = self.pd.read_sql(sql, conn)
+        print(data)
         return data
 
     def get_members_ratings(self, userId):
-        sql = "select MOVIEID, RATING from RATINGS where USERID = {}".format(
-            userId)
+        sql = "select MOVIEID, RATING from RATINGS where USERID = {}".format(userId)
+        data = self.pd.read_sql(sql, conn)
+        return data
+
+    def get_members_ratings_userid_movieid(self, userId):
+        sql = "select USERID, MOVIEID from RATINGS where USERID = {}".format(userId)
+        data = self.pd.read_sql(sql, conn)
+        return data
+
+    def get_one_hotted_movies(self):
+        sql = "select * from ONEHOT_MOVIES"
         data = self.pd.read_sql(sql, conn)
         return data
 
@@ -36,8 +52,7 @@ class Database():
         conditions = []
         for id in members_movieIds:
             conditions.append("MOVIEID=" + str(id))
-        sql = "select * from ONEHOT_MOVIES where {}".format(
-            ' OR '.join(conditions))
+        sql = "select * from ONEHOT_MOVIES where {}".format(' OR '.join(conditions))
         data = self.pd.read_sql(sql, conn)
         return data
 
@@ -51,9 +66,9 @@ class Database():
         sql = "INSERT INTO {} VALUES({})".format(table_name, ', '.join(
             [':'+str(i+1) for i in range(len(data.columns))]))
         conn.execute(sql, rows)
-
-    def get_one_hotted_movies(self):
-        sql = "select * from ONEHOT_MOVIES"
+    
+    def get_cleaned_movies_movieid_title(self):
+        sql = "select MOVIEID, TITLE from ONEHOT_MOVIES"
         data = self.pd.read_sql(sql, conn)
         return data
 
@@ -62,14 +77,57 @@ class Database():
         print(type(table_name), type(userId), type(top_ten_list))
 
         try:
-            sql = "insert into {} values({}, '{}')".format(
-                table_name, userId, top_ten_list)
+            sql = "insert into {} values({}, '{}')".format(table_name, userId, top_ten_list)
             conn.execute(sql)
         except Exception as e:
-            sql = "update {} set movieids='{}' where userid={}".format(
-                table_name, top_ten_list, userId)
+            sql = "update {} set movieids='{}' where userid={}".format(table_name, top_ten_list, userId)
             conn.execute(sql)
-# ================================================================================
+# ===============================stkim-userbased===============================
+    # user-user :: collaborative filtering --> SVD
+    # other member's rating list with the same movieid user watched before.
+    def get_others_ratings_user_watched(self, userId, score):
+        sql = """SELECT
+                    A.USERID,
+                    A.MOVIEID,
+                    A.RATING
+                FROM RATINGS A
+                WHERE A.USERID!={} AND A.RATING>={} AND A.MOVIEID IN (SELECT MOVIEID
+                                                    FROM RATINGS
+                                                    WHERE (USERID={} AND RATING>={}))
+              """.format(userId, score, userId, score)
+        data = self.pd.read_sql(sql, conn)
+        return data
+    def get_members_ratings_over_score(self, userId, score):
+        sql = "select MOVIEID, RATING from RATINGS where USERID = {} and RATING >= {}".format(userId, score)
+        data = self.pd.read_sql(sql, conn)
+        
+        return data
+# =============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def read_data(self, table_name, files_name):
         sql = "select * from {} where files_name = '{}'".format(
