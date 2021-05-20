@@ -121,10 +121,20 @@ class Database():
         return data
 # =============================================================================
 
-    def read_data(self, table_name, files_name):
-        sql = "select * from {} where files_name = '{}'".format(
-            table_name.lower(), files_name)
-        data = self.pd.read_sql(sql, conn)
+    # def read_data(self, table_name, files_name):
+    #     sql = "select * from {} where files_name = '{}'".format(
+    #         table_name.lower(), files_name)
+    #     data = self.pd.read_sql(sql, conn)
+    #     # data 열이름 소문자처리
+    #     data.columns = data.columns.str.lower()
+    #     return data
+
+    def read_data(self, tablesName):
+        if tablesName == 'members':
+            sql = "select M_ID, M_AGE, M_SEX, M_GENRE, USERID, M_GENRE from {}".format(tablesName)
+        else:
+            sql = "select * from {}".format(tablesName)
+        data = pd.read_sql(sql, conn)
         # data 열이름 소문자처리
         data.columns = data.columns.str.lower()
         return data
@@ -164,7 +174,7 @@ class Database():
 
     def set_fk(self, new_table_name):
         new_table_name = new_table_name.lower()
-        sql = "alter table {} add foreign key (files_name) references file_storage(files_name) on delete cascade".format(
+        sql = "alter table {} add freoreign key (files_name) references file_storage(files_name) on delete cascade".format(
             new_table_name)
         conn.execute(sql)
 
@@ -178,3 +188,4 @@ class Database():
         data = pd.read_sql(sql, conn)
 
         return data
+# ===============================IMDB===============================
