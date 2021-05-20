@@ -16,7 +16,7 @@ def merge_chart(userid):
     movies['year'] = movies['year'].str.replace(')', '')
     movies['title'] = movies['title'].str.strip().str[:-7]
     # userid 기반 데이터
-    sql = "select movieid from ratings where userid = {}".format(user_id)
+    sql = "select movieid from ratings where userid = {}".format(userid)
     user_watch_movie = oracle_db.read_sql(sql)
     user_watch_movie = np.array(user_watch_movie['movieid'].tolist())
 
@@ -29,7 +29,7 @@ def merge_chart(userid):
     return data
 
 def user_genre(userid):
-    sql = "select M_GENRE from members where userid = {}".format(user_id)
+    sql = "select M_GENRE from members where userid = {}".format(userid)
     genre_ = oracle_db.read_sql(sql)
 
     genrelist = pd.array(genre_['m_genre'].tolist())
